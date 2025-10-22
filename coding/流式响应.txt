@@ -1,0 +1,9 @@
+1. 掌握当前方案（SSE + 回调）✅ ← 你已经理解了
+1. 学习 CompletableFuture（异步编程基础）
+1. 了解 Reactor 基础（响应式编程思想）
+1. 实践 WebFlux（在个人项目中尝试）
+1. 深入 Reactive Streams（高级场景）
+
+
+
+初步学习sse+回调 之后学习webflux
