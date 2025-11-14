@@ -1,0 +1,223 @@
+### 1.枚举类
+
+### 2.io流
+
+java的io流是对数据元的抽象,提供的统一读写接口
+
+文件->向操作系统申请一个文件句柄来操作读写
+
+网络->
+
+流是封装了句柄并提供统一读写接口的对象
+
+句柄是os(操作系统) 分配的资源标识符,用于实际操作文件/网络
+
+### 3.日期与时间
+
+DateTimeFormatter:自定义输出的格式
+
+LocalDateTime
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        LocalDate d = LocalDate.now(); // 当前日期
+        LocalTime t = LocalTime.now(); // 当前时间
+        LocalDateTime dt = LocalDateTime.now(); // 当前日期和时间
+        System.out.println(d); // 严格按照ISO 8601格式打印
+        System.out.println(t); // 严格按照ISO 8601格式打印
+        System.out.println(dt); // 严格按照ISO 8601格式打印
+    }
+}
+```
+
+```
+public class Main {
+    public static void main(String[] args) {
+        // 本月第一天0:00时刻:
+        LocalDateTime firstDay = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        System.out.println(firstDay);
+
+        // 本月最后1天:
+        LocalDate lastDay = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
+        System.out.println(lastDay);
+
+        // 下月第1天:
+        LocalDate nextMonthFirstDay = LocalDate.now().with(TemporalAdjusters.firstDayOfNextMonth());
+        System.out.println(nextMonthFirstDay);
+
+        // 本月第1个周一:
+        LocalDate firstWeekday = LocalDate.now().with(TemporalAdjusters.firstInMonth(DayOfWeek.MONDAY));
+        System.out.println(firstWeekday);
+    }
+}
+```
+
+Duration:表示两个时刻之间的时间间隔
+
+period:两个日期之间的天数
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        LocalDateTime start = LocalDateTime.of(2019, 11, 19, 8, 15, 0);
+        LocalDateTime end = LocalDateTime.of(2020, 1, 9, 19, 25, 30);
+        Duration d = Duration.between(start, end);
+        System.out.println(d); // PT1235H10M30S
+        Period p = LocalDate.of(2019, 11, 19).until(LocalDate.of(2020, 1, 9));
+        System.out.println(p); // P1M21D
+    }
+}
+```
+
+ZonedDateTime:带时区的时间类
+
+## 4.stream
+
+Stream.of:创建一个输出确定元素的stream
+
+```java
+import java.util.stream.Stream;
+
+public class Main {
+    public static void main(String[] args) {
+        Stream<String> stream = Stream.of("A", "B", "C", "D");
+        // forEach()方法相当于内部循环调用，
+        // 可传入符合Consumer接口的void accept(T t)的方法引用：
+        stream.forEach(System.out::println);
+    }
+}
+```
+
+基于数组或collection创建steam
+
+```java
+import java.util.*;
+import java.util.stream.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Stream<String> stream1 = Arrays.stream(new String[] { "A", "B", "C" });
+        Stream<String> stream2 = List.of("X", "Y", "Z").stream();
+        stream1.forEach(System.out::println);
+        stream2.forEach(System.out::println);
+    }
+}
+```
+
+把数组变成`Stream`使用`Arrays.stream()`方法。对于`Collection`（`List`、`Set`、`Queue`等），直接调用`stream()`方法就可以获得`Stream`
+
+基于supplier
+
+创建`Stream`还可以通过`Stream.generate()`方法，它需要传入一个`Supplier`对象：
+
+```java
+Stream<String> s = Stream.generate(Supplier<String> sp);
+```
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        Stream<Integer> natual = Stream.generate(new NatualSupplier());
+        // 注意：无限序列必须先变成有限序列再打印:
+        natual.limit(20).forEach(System.out::println);
+    }
+}
+class NatualSupplier implements Supplier<Integer> {
+    int n = 0;
+    public Integer get() {
+        n++;
+        return n;
+    }
+}
+```
+
+其他方法
+
+创建`Stream`的第三种方法是通过一些API提供的接口，直接获得`Stream`。
+
+例如，`Files`类的`lines()`方法可以把一个文件变成一个`Stream`，每个元素代表文件的一行内容：
+
+```
+try (Stream<String> lines = Files.lines(Paths.get("/path/to/file.txt"))) {}
+```
+
+正则表达式的`Pattern`对象有一个`splitAsStream()`方法，可以直接把一个长字符串分割成`Stream`序列而不是数组：
+
+```java
+Pattern p = Pattern.compile("\\s+");
+Stream<String> s = p.splitAsStream("The quick brown fox jumps over the lazy dog");
+s.forEach(System.out::println);
+```
+
+因为Java的泛型不支持基本类型，所以我们无法用`Stream<int>`这样的类型，会发生编译错误。为了保存`int`，只能使用`Stream<Integer>`，但这样会产生频繁的装箱、拆箱操作。为了提高效率，Java标准库提供了`IntStream`、`LongStream`和`DoubleStream`这三种使用基本类型的`Stream`，它们的使用方法和泛型`Stream`没有大的区别，设计这三个`Stream`的目的是提高运行效率：
+
+```java
+// 将int[]数组变为IntStream:
+IntStream is = Arrays.stream(new int[] { 1, 2, 3 });
+// 将Stream<String>转换为LongStream:
+LongStream ls = List.of("1", "2", "3").stream().mapToLong(Long::parseLong);
+```
+
+map:把一个`Stream`的每个元素一一对应到应用了目标函数的结果上
+
+```
+<R> Stream<R> map(Function<? super T, ? extends R> mapper);
+```
+
+```
+Stream<Integer> s = Stream.of(1, 2, 3, 4, 5);
+Stream<Integer> s2 = s.map(n -> n * n);
+```
+
+filter:一个`Stream`的所有元素一一进行测试，不满足条件的就被“滤掉”了，剩下的满足条件的元素就构成了一个新的`Stream`
+
+```java
+IntStream.of(1, 2, 3, 4, 5, 6, 7, 8, 9)
+                .filter(n -> n % 2 != 0)
+                .forEach(System.out::println);
+```
+
+reduce:`Stream.reduce()`则是`Stream`的一个聚合方法，它可以把一个`Stream`的所有元素按照聚合函数聚合成一个结果
+
+```java
+int sum = Stream.of(1, 2, 3, 4, 5, 6, 7, 8, 9).reduce(0, (acc, n) -> acc + n);
+```
+
+从一个stream转换到另一个stream不会计算值,只有当进行聚合运算才计算值
+
+```java
+Map<String, List<String>> groups = list.stream()
+                .collect(Collectors.groupingBy(s -> s.substring(0, 1), Collectors.toList()));
+```
+
+分组输出使用`Collectors.groupingBy()`，它需要提供两个函数：一个是分组的key，这里使用`s -> s.substring(0, 1)`，表示只要首字母相同的`String`分到一组，第二个是分组的value，这里直接使用`Collectors.toList()`，表示输出为`List`
+
+排序.sorted()需要让排序的对象实现Comparator接口
+
+去重.distinct()
+
+截取.skip().limit
+
+合并Stream< String > s = Stream.concat(s1, s2);
+
+
+
+## 5.supplier
+
+```
+@FunctionalInterface
+public interface Supplier<T> {
+    T get();
+}
+```
+
+它是一个函数式接口（只有一个抽象方法 `get()`）；
+
+你实现 `get()` 方法，就能返回一个类型为 `T` 的对象；
+
+它不接受任何参数。
+
+## 6.split
+
+. ^ $ | ? * + ( ) [ ] { } \在split匹配这些参数的时候需要加上//因为split参数需要时正则

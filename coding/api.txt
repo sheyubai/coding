@@ -1,4 +1,28 @@
+#### 1.lastindexof:
+
 String 的 lastindexof:返回目标字符/字串最后一次出现的索引位置(从0开始),没找到返回-1
 
+#### 2.String.format
 
+String.format 用于动态生成字符串，替代手动拼接 +
 
+```java
+String content = String.format(
+        "<html><body>" +
+        "<h3>积分不足提醒</h3>" +
+        "<p>尊敬的用户，您好！</p>" +
+        "<p>您的公司（ID: %d）当前剩余积分为：<strong style='color:red;'>%d</strong>，" +
+        "已低于您设置的提醒阈值：<strong>%d</strong>。</p>" +
+        "<p>请及时充值以避免影响正常使用。</p>" +
+        "<p style='color:#999;font-size:12px;'>此邮件为系统自动发送，请勿回复。</p>" +
+        "</body></html>",
+        companyId, currentPoints, pointLimit
+);
+```
+
+| 占位符 | 类型   | 示例                                             |
+| ------ | ------ | ------------------------------------------------ |
+| `%d`   | 整数   | `String.format("%d", 123)` → "123"               |
+| `%f`   | 浮点数 | `String.format("%.2f", 3.1415)` → "3.14"         |
+| `%s`   | 字符串 | `String.format("Hello %s", "Tom")` → "Hello Tom" |
+| `%n`   | 换行   | 与系统换行符一致                                 |
